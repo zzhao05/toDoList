@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData
 
 class AddToDoViewController: UIViewController {
 var previousToDoTVC = toDoTableTableViewController()
@@ -18,7 +19,25 @@ var previousToDoTVC = toDoTableTableViewController()
         // Do any additional setup after loading the view.
     }
     @IBAction func addButtonTapped(_ sender: UIButton) {
-        let newToDo = ToDo()
+    
+        guard let accessToCoreData =
+        UIApplication.shared.delegate as? AppDelegate else {
+            return
+        }
+        let dataFromCoreData =
+        accessToCoreData.persistentContainer.viewContext
+        
+        let newToDo = ToDoCD(context: dataFromCoreData)
+        newToDo.descriptionInCD = descriptionInput.text
+        newToDo.importantInCD = switchInput.isOn
+        
+        accessToCoreData.saveContext()
+        
+        navigationController?.popViewController(animated: true)
+        
+    }
+    
+      /*  let newToDo = ToDo()
         if let checkForInput = descriptionInput.text {
             newToDo.description = checkForInput
             newToDo.important = switchInput.isOn
@@ -28,8 +47,8 @@ var previousToDoTVC = toDoTableTableViewController()
         navigationController?.popViewController(animated: true)
     }
     
-
-    /*
+*/
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
@@ -37,6 +56,8 @@ var previousToDoTVC = toDoTableTableViewController()
         // Get the new view controller using segue.destination.
         // Pass the selected object to the new view controller.
     }
-    */
+ 
+
 
 }
+

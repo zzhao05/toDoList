@@ -10,9 +10,9 @@ import UIKit
 class toDoTableTableViewController: UITableViewController {
 
     
-    var listOfToDo : [ToDo] = []
+    var listOfToDo : [ToDoCD] = []
     
-    func createToDo() -> [ToDo]{
+    func getToDo() -> [ToDo]{
         let swiftToDo = ToDo()
         swiftToDo.description = "Learn Swift"
         swiftToDo.important = true
@@ -27,11 +27,21 @@ class toDoTableTableViewController: UITableViewController {
         return [swiftToDo, dogToDo, coffeeToDo]
     }
     
-    
+    func getToDos() {
+        if let accessToCoreData =
+            (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext{
+            if let dataFromCoreData = try?
+                accessToCoreData.fetch(ToDoCD.fetchRequest())as? [ToDoCD]{
+                listOfToDo = dataFromCoreData
+                tableView.reloadData()
+            }
+        }
+        
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        listOfToDo = createToDo()
+      //  listOfToDo = getToDo()
         
     }
 
@@ -51,18 +61,22 @@ class toDoTableTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
         
         let eachToDo = listOfToDo[indexPath.row]
-        if eachToDo.important {
-        cell.textLabel?.text = "🤬" + eachToDo.description
+        if let thereIsDescription = eachToDo.descriptionInCD {
+            if eachToDo.importantInCD {
+                cell.textLabel?.text = "🤬" + thereIsDescription
         } else {
-            cell.textLabel?.text = eachToDo.description
+            cell.textLabel?.text = eachToDo.descriptionInCD
         }
 
-        // Configure the cell...
-
+        }
         return cell
-    }
-    
 
+    }
+        
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let eachToDo = listOfToDo[indexPath.row]
+        performSegue(withIdentifier: "moveToCompletedToDoVc", sender: eachToDo)
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -100,11 +114,21 @@ class toDoTableTableViewController: UITableViewController {
 
     
     // MARK: - Navigation
-
+        override func viewWillAppear (_ animated: Bool) {
+            getToDos()
+        }
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let nextAddToDoVC = segue.destination as? AddToDoViewController {
             nextAddToDoVC.previousToDoTVC = self
+        }
+        
+        if let nextCompletedToDoVC = segue.destination as?
+        CompletedToDoViewController {
+            if let choosenToDo = sender as? ToDoCD {
+            nextCompletedToDoVC.selectedToDo = choosenToDo
+                nextCompletedToDoVC.previousToDoTVC = self
+            }
         }
         // Get the new view controller using segue.destination.
         // Pass the selected object to the new view controller.
